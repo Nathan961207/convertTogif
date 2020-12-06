@@ -1,52 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
 
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import { MainHeader } from './Components/Header/Header';
+import { MainContent } from './Components/Content/Content';
+import { MainFooter } from './Components/Footer/Footer';
+import { GifMaker } from './Components/GifMaker';
 
 const ffmpeg = createFFmpeg({ log: true });
 
 function App() {
-
-
   const [ready, setReady] = useState(false);
-  const [video, setVideo] = useState();
-  const [gif, setGIF] = useState();
-
   const load = async () => {
+    if (ffmpeg.isLoaded()) return;
     await ffmpeg.load();
     setReady(true);
-  }
+  };
 
   useEffect(() => {
     load();
   }, []);
 
-  const convertToGif = async () => {
-    // Memory
-    ffmpeg.FS('writeFile', 'test.mp4', await fetchFile(video));
-
-    // Run the command
-    await ffmpeg.run('-i', 'test.mp4', '-t', '2.5', '-ss', '2.0', '-f', 'gif', 'out.gif');
-
-    // Read the result
-    const data = ffmpeg.FS('readFile', 'out.gif');
-
-    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' }));
-
-    setGIF(url);
-  }
-
   return ready ? (
-    <div className="App">
-      { video && <video controls width="250" src={URL.createObjectURL(video)}>
-      </video>}
-      <input type="file" onChange={(e) => setVideo(e.target.files?.item(0))} />
-      <h3>Result</h3>
-      <button onClick={convertToGif}>Convert</button>
-      {gif && <img src={gif} width="250" />}
+    <div>
+      <MainHeader />
+      <MainContent>
+        <GifMaker ffmpeg={ffmpeg} />
+      </MainContent>
+      <MainFooter />
     </div>
-  ) :
-    (<p>Loading...</p>)
+  ) : (
+    <p>Loading...</p>
+  );
 }
 
 export default App;
